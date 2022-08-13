@@ -1,0 +1,32 @@
+CA is an enterprise level password and account management solution capable of account synchronisation, one-time password use with automatic reset and provides triple A framework for credential security management.
+
+The SB CA implementation is divided into 3 components:
+1 - ServerBuild Database component which comprises of the PowerShell script, the Package Binary directory and all associated tasks.
+ The PowerShell script "CyberArkUpload.ps1" accepts among others 3 critical parameters that are used to determine which configuration file to use when executing the PasswordUpload.exe utility. 
+These parameters include:
+ a. FunctionOrBusiness - this parameter is equivalent to the deployment BusinessLayer. In the case storing ILO credentials, this is hardcoded to ILO.
+ b. TeamOrManagedBy - This parameter is equivalent to the ManagedBy attribute of the target OU as configured in Active Directory.
+ c. Location - This is a recent addition, and is equivalent to the physical location of the server as indicated in the ServerBuild configuration page.
+
+The 3 parameters indicated above are cocantated in the format "CA Root Folder\FunctionOrBusiness\TeamOrManagedBy\Location\" by the OB webservice, and used to determine which configuration file to load when storing the credentials.
+
+
+2 - ServerBuild WebService component which is located in the WebAPI GIT repository (ServerBuild.WebApi/ServerBuild.WebApi/Controllers/CyberArkController.cs).
+ The OB WebService contains logic used to evaluate the target configuration folder and can be surmised as follows:
+ a. if the target directory ".\FunctionOrBusiness\TeamOrManagedBy\Location\" exists then the configuration files there are used. If not the next criteria is evaluated.
+ b. if the target directory ".\FunctionOrBusiness\TeamOrManagedBy\" exists then the configuration files there are used. If not the next criteria is evaluated.
+ c. if the target directory ".\FunctionOrBusiness\Location\" exists then the configuration files there are used. If not the next criteria is evaluated.
+ d. if the target directory ".\FunctionOrBusiness\" exists then the configuration files there are used. If not, the webservice throws an error.
+
+
+
+
+3 - ServerBuild Server directory structure which is used to host the layer specific configuration files.
+ In addition to hositng the web service, the ServerBuild server also hosts the configuration files used for credentials uploading. Those configuration files are hosted in separate directories and depending on which options are used, can place the credentials in diffrent safes, with different policiy IDs and on different CA server clusters.
+Among the files stored in this location, the following are  most critical:
+ a. user.ini - this file contains encrypted credentials is used to connect to the CA safe and is usually provided by members of the Security Team during CA safe setup.
+ b. Vault.ini -  this file contains among other things, details of the CA cluster server and port number as well as default connectivity settings.
+ c. password.csv -  this file contains the details of the credentials to store, the safe into which these go, the policyID to use, the format for storing the credentials as well as anyother patameters required by the business unit when setting up the safe.
+
+
+
